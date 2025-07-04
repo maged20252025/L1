@@ -121,6 +121,29 @@ def run_main_app():
     }
     #scroll-top-btn { bottom: 80px; }
     #scroll-bottom-btn { bottom: 20px; }
+    /* ---- تخصيص المحاذاة لليمين للـ Metric والـ Download button ---- */
+    .rtl-metric {
+        direction: rtl;
+        text-align: right !important;
+        margin-right: 0 !important;
+    }
+    .rtl-metric .stMetric {
+        text-align: right !important;
+        direction: rtl;
+    }
+    .rtl-metric .stMetricDelta {
+        display: block !important;
+        text-align: right !important;
+        direction: rtl;
+    }
+    .rtl-download-btn {
+        direction: rtl;
+        text-align: right !important;
+        margin-right: 0 !important;
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
     </style>
     <button class='scroll-btn' id='scroll-top-btn' onclick='window.scrollTo({top: 0, behavior: "smooth"});'>⬆️</button>
     <button class='scroll-btn' id='scroll-bottom-btn' onclick='window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});'>⬇️</button>
@@ -137,12 +160,23 @@ def run_main_app():
 
     # تهيئة session_state لنتائج البحث وحالة البحث
 
-    st.markdown("### 🔎 نموذج البحث")
+    # -- نموذج البحث بمحاذاة يمين --
+    st.markdown("""
+        <div style="direction: rtl; text-align: right;">
+        <h3 style="display: flex; align-items: center; gap: 10px;">🔎 نموذج البحث</h3>
+        </div>
+    """, unsafe_allow_html=True)
     with st.form("main_search_form"):
-        selected_file_form = st.selectbox("اختر قانونًا للبحث:", ["الكل"] + files, key="main_file_select")
-        keywords_form = st.text_area("📌 الكلمات المفتاحية (افصل بفاصلة):", key="main_keywords_input",
+        # تخصيص تسمية الحقول مع اتجاه يمين
+        st.markdown('<div style="direction: rtl; text-align: right;">اختر قانونًا للبحث:</div>', unsafe_allow_html=True)
+        selected_file_form = st.selectbox("", ["الكل"] + files, key="main_file_select", label_visibility="collapsed")
+        st.markdown('<div style="direction: rtl; text-align: right;">📌 الكلمات المفتاحية (افصل بفاصلة):</div>', unsafe_allow_html=True)
+        keywords_form = st.text_area("", key="main_keywords_input",
                                      help="أدخل الكلمات التي تريد البحث عنها، وافصل بينها بفاصلة إذا كانت أكثر من كلمة.")
-        submitted = st.form_submit_button("🔍 بدء البحث", use_container_width=True)
+        # زر البحث مع أيقونة يمين
+        search_btn_col = st.columns([1, 2, 12])
+        with search_btn_col[2]:
+            submitted = st.form_submit_button("🔍 بدء البحث", use_container_width=True)
 
     if "results" not in st.session_state:
         st.session_state.results = []
@@ -215,10 +249,15 @@ def run_main_app():
         results = st.session_state.results
         unique_laws = sorted(set(r["law"] for r in results))
 
+        # ---- محاذاة يمين للـ metric ----
+        st.markdown('<div class="rtl-metric">', unsafe_allow_html=True)
         st.metric(label="📊 إجمالي النتائج التي تم العثور عليها", value=f"{len(results)}", delta=f"في {len(unique_laws)} قانون/ملف")
+        st.markdown('</div>', unsafe_allow_html=True)
 
+        # ---- محاذاة يمين لزر التصدير ----
         if results:
             export_data = export_results_to_word(results)
+            st.markdown('<div class="rtl-download-btn">', unsafe_allow_html=True)
             st.download_button(
                 label="⬇️ تصدير النتائج إلى Word",
                 data=export_data,
@@ -227,13 +266,16 @@ def run_main_app():
                 key="download_button_word_main",
                 use_container_width=False
             )
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.warning("لا توجد نتائج لتصديرها.")
         
         st.markdown("---")
 
         if results:
-            selected_law_filter = st.selectbox("فلترة النتائج حسب القانون:", ["الكل"] + unique_laws, key="results_law_filter")
+            # ------ فلترة النتائج بمحاذاة يمين ------
+            st.markdown('<div style="direction: rtl; text-align: right;">فلترة النتائج حسب القانون:</div>', unsafe_allow_html=True)
+            selected_law_filter = st.selectbox("", ["الكل"] + unique_laws, key="results_law_filter", label_visibility="collapsed")
             filtered = results if selected_law_filter == "الكل" else [r for r in results if r["law"] == selected_law_filter]
 
             for i, r in enumerate(filtered):
@@ -248,7 +290,7 @@ def run_main_app():
                     ''', unsafe_allow_html=True)
                     # أيقونة نسخ المادة
                     components.html(f"""
-                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;direction:rtl;">
                             <span style="font-size:17px;">انقر لنسخ المادة:</span>
                             <span style="cursor:pointer;font-size:28px;color:#33691e;" id="copy_icon_{i}_{r['law']}_{r['num']}"
                                 onclick="
