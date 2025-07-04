@@ -363,9 +363,59 @@ def run_main_app():
 # الدالة الرئيسية لتشغيل التطبيق (مع شاشة التفعيل/التجربة)
 # ----------------------------------------------------
 def main():
-    st.markdown("<h1 style='text-align: center; color: #4CAF50;'>📖 تطبيق القوانين اليمنية ⚖️</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: #66BB6A;'>استكشف أحدث التعديلات حتى عام 2025م</h3>", unsafe_allow_html=True)
+    # ---------- الهيدر الجديد المميز ----------
+    components.html("""
+    <style>
+    .icon-header-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+    .icon-header-circle {
+        background: linear-gradient(135deg, #4CAF50 70%, #A5D6A7);
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(76,175,80,0.15);
+        margin-bottom: 8px;
+        border: 4px solid #388E3C;
+    }
+    .icon-header-circle span {
+        font-size: 54px;
+        color: #fff;
+    }
+    .icon-header-title {
+        color: #388E3C;
+        font-size: 2.1rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 0px;
+        margin-top: 0;
+        letter-spacing: 1px;
+    }
+    .icon-header-subtitle {
+        color: #66BB6A;
+        font-size: 1.15rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        margin-top: -7px;
+    }
+    </style>
+    <div class="icon-header-container">
+        <div class="icon-header-circle">
+            <span>📖⚖️</span>
+        </div>
+        <div class="icon-header-title">تطبيق القوانين اليمنية</div>
+        <div class="icon-header-subtitle">استكشف أحدث التعديلات حتى عام 2025م</div>
+    </div>
+    """, height=220)
     st.divider()
+    # ------------------------------------------------
 
     if is_activated():
         run_main_app()
