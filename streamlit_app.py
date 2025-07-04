@@ -236,7 +236,6 @@ def run_main_app():
             selected_law_filter = st.selectbox("فلترة النتائج حسب القانون:", ["الكل"] + unique_laws, key="results_law_filter")
             filtered = results if selected_law_filter == "الكل" else [r for r in results if r["law"] == selected_law_filter]
 
-            # تعديل هنا: expander يبدأ بحالة expanded=True
             for i, r in enumerate(filtered):
                 with st.expander(f"📚 **{r['law']}** - المادة رقم: **{r['num']}**", expanded=True):
                     st.markdown(f'''
@@ -247,7 +246,24 @@ def run_main_app():
                         </p>
                     </div>
                     ''', unsafe_allow_html=True)
-                    st.text_area(f"📋 المادة كاملة (اضغط لتحديدها ونسخها):", value=r["plain"], height=200, key=f"plain_text_{r['law']}_{r['num']}_{i}")
+                    # أيقونة نسخ المادة
+                    components.html(f"""
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                            <span style="font-size:17px;">انقر لنسخ المادة:</span>
+                            <span style="cursor:pointer;font-size:28px;color:#33691e;" id="copy_icon_{i}_{r['law']}_{r['num']}"
+                                onclick="
+                                    navigator.clipboard.writeText(document.getElementById('plain_text_{i}_{r['law']}_{r['num']}').innerText);
+                                    var msg = document.getElementById('copied_msg_{i}_{r['law']}_{r['num']}');
+                                    msg.style.display='inline';
+                                    setTimeout(function(){{msg.style.display='none';}},2000);
+                                "
+                                title='نسخ المادة'>
+                                📋
+                            </span>
+                            <span id="copied_msg_{i}_{r['law']}_{r['num']}" style="display:none;color:#388e3c;font-size:16px;transition:all 0.3s;">✅ تم نسخ المادة</span>
+                        </div>
+                        <div id="plain_text_{i}_{r['law']}_{r['num']}" style="display:none;">{html.escape(r['plain'])}</div>
+                    """, height=36)
         else:
             st.info("لا توجد نتائج لعرضها حاليًا. يرجى إجراء بحث جديد.")
 
