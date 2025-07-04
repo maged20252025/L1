@@ -338,24 +338,69 @@ def run_main_app():
                         </p>
                     </div>
                     ''', unsafe_allow_html=True)
-                    # أيقونة نسخ المادة
+                    # زر نسخ المادة بشكل احترافي
                     components.html(f"""
-                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;direction:rtl;">
-                            <span style="font-size:17px;">انقر لنسخ المادة:</span>
-                            <span style="cursor:pointer;font-size:28px;color:#33691e;" id="copy_icon_{i}_{r['law']}_{r['num']}"
-                                onclick="
-                                    navigator.clipboard.writeText(document.getElementById('plain_text_{i}_{r['law']}_{r['num']}').innerText);
-                                    var msg = document.getElementById('copied_msg_{i}_{r['law']}_{r['num']}');
-                                    msg.style.display='inline';
-                                    setTimeout(function(){{msg.style.display='none';}},2000);
-                                "
-                                title='نسخ المادة'>
-                                📋
-                            </span>
-                            <span id="copied_msg_{i}_{r['law']}_{r['num']}" style="display:none;color:#388e3c;font-size:16px;transition:all 0.3s;">✅ تم نسخ المادة</span>
-                        </div>
+                        <style>
+                        .copy-material-btn {{
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
+                            color: #fff;
+                            border: none;
+                            border-radius: 30px;
+                            font-size: 18px;
+                            font-family: 'Cairo', 'Tajawal', sans-serif;
+                            padding: 10px 22px;
+                            cursor: pointer;
+                            box-shadow: 0 2px 12px #c5e1a577;
+                            transition: background 0.3s, box-shadow 0.3s;
+                            margin-bottom: 10px;
+                            direction: rtl;
+                        }}
+                        .copy-material-btn:hover {{
+                            background: linear-gradient(90deg, #388e3c 0%, #43cea2 100%);
+                            box-shadow: 0 4px 18px #43cea277;
+                        }}
+                        .copy-material-btn .copy-icon {{
+                            font-size: 24px;
+                            margin-left: 8px;
+                            transition: color 0.2s;
+                        }}
+                        .copy-material-btn.copied {{
+                            background: linear-gradient(90deg, #388e3c 0%, #aed581 100%);
+                            color: #fff;
+                        }}
+                        .copy-material-btn .copied-check {{
+                            font-size: 22px;
+                            color: #ffd600;
+                            margin-left: 8px;
+                            display: none;
+                        }}
+                        .copy-material-btn.copied .copied-check {{
+                            display: inline;
+                            animation: fadein-check 1s;
+                        }}
+                        @keyframes fadein-check {{
+                            0% {{ opacity: 0; transform: scale(0.5); }}
+                            60% {{ opacity: 1; transform: scale(1.2); }}
+                            100% {{ opacity: 1; transform: scale(1); }}
+                        }}
+                        </style>
+                        <button class="copy-material-btn" id="copy_btn_{i}_{r['law']}_{r['num']}" onclick="
+                            navigator.clipboard.writeText(document.getElementById('plain_text_{i}_{r['law']}_{r['num']}').innerText);
+                            var btn = document.getElementById('copy_btn_{i}_{r['law']}_{r['num']}');
+                            btn.classList.add('copied');
+                            setTimeout(function(){{
+                                btn.classList.remove('copied');
+                            }}, 1800);
+                        ">
+                            <span class="copy-icon">📋</span>
+                            <span>انقر لنسخ المادة</span>
+                            <span class="copied-check">✅ تم النسخ!</span>
+                        </button>
                         <div id="plain_text_{i}_{r['law']}_{r['num']}" style="display:none;">{html.escape(r['plain'])}</div>
-                    """, height=36)
+                    """, height=48)
         else:
             st.info("لا توجد نتائج لعرضها حاليًا. يرجى إجراء بحث جديد.")
 
@@ -410,19 +455,4 @@ def main():
             if st.button("🚀 بدء التجربة المجانية (3 دقائق)", key="start_trial_button", use_container_width=True):
                 register_trial(device_id)
                 st.success("✅ بدأت النسخة التجريبية الآن. لديك 3 دقائق لاستخدام التطبيق.")
-                st.warning("يرجى التفاعل مع الصفحة (مثلاً، النقر بالماوس أو التمرير) لتحديث الواجهة وبدء استخدام التطبيق.")
-
-        if trial_start is not None:
-            elapsed_time = time.time() - trial_start
-            remaining_time = TRIAL_DURATION - elapsed_time
-
-            if remaining_time > 0:
-                minutes = int(remaining_time // 60)
-                seconds = int(remaining_time % 60)
-                st.info(f"⏳ النسخة التجريبية لا تزال نشطة. الوقت المتبقي: {minutes:02d}:{seconds:02d}")
-                run_main_app()
-            else:
-                st.error("❌ انتهت مدة التجربة المجانية لهذا الجهاز. يرجى تفعيل التطبيق للاستمرار في الاستخدام.")
-
-if __name__ == "__main__":
-    main()
+                st.warning("يرجى التفاعل مع الصفحة (مثلاً، النقر بالماوس أو التمرير) لتحديث الواجهة وبدء استخدام
