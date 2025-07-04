@@ -100,10 +100,16 @@ def export_results_to_word(results, filename="نتائج_البحث.docx"):
     buffer.seek(0)
     return buffer.getvalue()
 
+def normalize_arabic_numbers(text):
+    # تحويل الأرقام العربية إلى إنجليزية
+    arabic_to_english = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
+    return text.translate(arabic_to_english)
+
 # ----------------------------------------------------
 # وظيفة التطبيق الرئيسية (بعد التفعيل أو بدء التجربة)
 # ----------------------------------------------------
 def run_main_app():
+    # إضافة CSS لتصحيح اتجاه مربع النص وزر التصدير والعداد
     components.html("""
     <style>
     .scroll-btn {
@@ -144,6 +150,16 @@ def run_main_app():
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
+    /* --------- اجبار مربعات النصوص للكتابة من اليمين -------- */
+    textarea, .stTextArea textarea {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    /* --------- اجبار كل عناصر النتائج أن تكون يمين -------- */
+    .stButton, .stDownloadButton, .stMetric {
+        direction: rtl !important;
+        text-align: right !important;
+    }
     </style>
     <button class='scroll-btn' id='scroll-top-btn' onclick='window.scrollTo({top: 0, behavior: "smooth"});'>⬆️</button>
     <button class='scroll-btn' id='scroll-bottom-btn' onclick='window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});'>⬇️</button>
@@ -171,8 +187,18 @@ def run_main_app():
         st.markdown('<div style="direction: rtl; text-align: right;">اختر قانونًا للبحث:</div>', unsafe_allow_html=True)
         selected_file_form = st.selectbox("", ["الكل"] + files, key="main_file_select", label_visibility="collapsed")
         st.markdown('<div style="direction: rtl; text-align: right;">📌 الكلمات المفتاحية (افصل بفاصلة):</div>', unsafe_allow_html=True)
-        keywords_form = st.text_area("", key="main_keywords_input",
-                                     help="أدخل الكلمات التي تريد البحث عنها، وافصل بينها بفاصلة إذا كانت أكثر من كلمة.")
+        keywords_form = st.text_area(
+            "",
+            key="main_keywords_input",
+            help="أدخل الكلمات التي تريد البحث عنها، وافصل بينها بفاصلة إذا كانت أكثر من كلمة."
+        )
+        # مربع رقم المادة
+        st.markdown('<div style="direction: rtl; text-align: right;">🔢 رقم المادة (اختياري):</div>', unsafe_allow_html=True)
+        article_number_input = st.text_input(
+            "",
+            key="article_number_input",
+            help="أدخل رقم المادة للبحث عنها مباشرة (يمكن استخدام أرقام عربية أو إنجليزية)."
+        )
         # زر البحث مع أيقونة يمين
         search_btn_col = st.columns([1, 2, 12])
         with search_btn_col[2]:
@@ -185,60 +211,84 @@ def run_main_app():
 
     # تنفيذ البحث فقط إذا تم إرسال النموذج
     if submitted:
-        if keywords_form:
-            kw_list = [k.strip() for k in keywords_form.split(",") if k.strip()]
-            results = []
-            search_files = files if selected_file_form == "الكل" else [selected_file_form]
+        results = []
+        search_files = files if selected_file_form == "الكل" else [selected_file_form]
+        kw_list = [k.strip() for k in keywords_form.split(",") if k.strip()] if keywords_form else []
+        search_by_article = bool(article_number_input.strip())
 
-            with st.spinner("جاري البحث في القوانين... قد يستغرق الأمر بعض الوقت."):
-                for file in search_files:
-                    try:
-                        doc = Document(os.path.join(LAWS_DIR, file))
-                    except Exception as e:
-                        st.warning(f"⚠️ تعذر قراءة الملف {file}: {e}. يرجى التأكد من أنه ملف DOCX صالح.")
+        norm_article = normalize_arabic_numbers(article_number_input.strip()) if search_by_article else ""
+
+        with st.spinner("جاري البحث في القوانين... قد يستغرق الأمر بعض الوقت."):
+            for file in search_files:
+                try:
+                    doc = Document(os.path.join(LAWS_DIR, file))
+                except Exception as e:
+                    st.warning(f"⚠️ تعذر قراءة الملف {file}: {e}. يرجى التأكد من أنه ملف DOCX صالح.")
+                    continue
+
+                law_name = file.replace(".docx", "")
+                last_article = "غير معروفة"
+                current_article_paragraphs = []
+
+                for para in doc.paragraphs:
+                    txt = para.text.strip()
+                    if not txt:
                         continue
+                    match = re.match(r"مادة\s*[\(]?\s*(\d+)[\)]?", txt)
+                    if match:
+                        # عند الانتقال إلى مادة جديدة احفظ المادة السابقة
+                        if current_article_paragraphs:
+                            full_text = "\n".join(current_article_paragraphs)
+                            add_result = False
+                            # البحث حسب رقم المادة فقط
+                            if search_by_article and normalize_arabic_numbers(last_article) == norm_article:
+                                add_result = True
+                            # البحث حسب كلمات مفتاحية فقط أو مع رقم المادة
+                            elif kw_list and any(kw.lower() in full_text.lower() for kw in kw_list):
+                                if search_by_article:
+                                    if normalize_arabic_numbers(last_article) == norm_article:
+                                        add_result = True
+                                else:
+                                    add_result = True
 
-                    law_name = file.replace(".docx", "")
-                    last_article = "غير معروفة"
-                    current_article_paragraphs = []
+                            if add_result:
+                                highlighted = highlight_keywords(full_text, kw_list) if kw_list else full_text
+                                results.append({
+                                    "law": law_name,
+                                    "num": last_article,
+                                    "text": highlighted,
+                                    "plain": full_text
+                                })
+                            current_article_paragraphs = []
+                        last_article = match.group(1)
+                    current_article_paragraphs.append(txt)
 
-                    for para in doc.paragraphs:
-                        txt = para.text.strip()
-                        if not txt:
-                            continue
-                        match = re.match(r"مادة\s*[\(]?\s*(\d+)[\)]?", txt)
-                        if match:
-                            if current_article_paragraphs:
-                                full_text = "\n".join(current_article_paragraphs)
-                                if any(kw.lower() in full_text.lower() for kw in kw_list):
-                                    highlighted = highlight_keywords(full_text, kw_list)
-                                    results.append({
-                                        "law": law_name,
-                                        "num": last_article,
-                                        "text": highlighted,
-                                        "plain": full_text
-                                    })
-                                current_article_paragraphs = []
-                            last_article = match.group(1)
-                        current_article_paragraphs.append(txt)
+                # معالجة آخر مادة في الملف
+                if current_article_paragraphs:
+                    full_text = "\n".join(current_article_paragraphs)
+                    add_result = False
+                    if search_by_article and normalize_arabic_numbers(last_article) == norm_article:
+                        add_result = True
+                    elif kw_list and any(kw.lower() in full_text.lower() for kw in kw_list):
+                        if search_by_article:
+                            if normalize_arabic_numbers(last_article) == norm_article:
+                                add_result = True
+                        else:
+                            add_result = True
 
-                    if current_article_paragraphs:
-                        full_text = "\n".join(current_article_paragraphs)
-                        if any(kw.lower() in full_text.lower() for kw in kw_list):
-                            highlighted = highlight_keywords(full_text, kw_list)
-                            results.append({
-                                "law": law_name,
-                                "num": last_article,
-                                "text": highlighted,
-                                "plain": full_text
-                            })
+                    if add_result:
+                        highlighted = highlight_keywords(full_text, kw_list) if kw_list else full_text
+                        results.append({
+                            "law": law_name,
+                            "num": last_article,
+                            "text": highlighted,
+                            "plain": full_text
+                        })
 
-            st.session_state.results = results
-            st.session_state.search_done = True
-            if not results:
-                st.info("لم يتم العثور على نتائج للكلمات المفتاحية المحددة.")
-        else:
-            st.warning("يرجى إدخال كلمات مفتاحية للبحث.")
+        st.session_state.results = results
+        st.session_state.search_done = True
+        if not results:
+            st.info("لم يتم العثور على نتائج مطابقة للبحث.")
 
     # الواجهة الرئيسية لعرض النتائج وزر التصدير
     st.markdown("<h2 style='text-align: center; color: #388E3C;'>نتائج البحث في القوانين 📚</h2>", unsafe_allow_html=True)
