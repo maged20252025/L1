@@ -85,7 +85,6 @@ def highlight_keywords(text, keywords):
 def export_results_to_word(results, filename="نتائج_البحث.docx"):
     document = Document()
     document.add_heading('نتائج البحث في القوانين اليمنية', level=1)
-    
     if not results:
         document.add_paragraph("لم يتم العثور على نتائج للكلمات المفتاحية المحددة.")
     else:
@@ -93,8 +92,7 @@ def export_results_to_word(results, filename="نتائج_البحث.docx"):
             document.add_heading(f"القانون: {r['law']} - المادة: {r['num']}", level=2)
             document.add_paragraph(r['plain'])
             if i < len(results) - 1:
-                document.add_page_break() 
-
+                document.add_page_break()
     buffer = BytesIO()
     document.save(buffer)
     buffer.seek(0)
@@ -173,8 +171,6 @@ def run_main_app():
     if not files:
         st.warning(f"📂 لا توجد ملفات قوانين في مجلد '{LAWS_DIR}/'.")
         return
-
-    # تهيئة session_state لنتائج البحث وحالة البحث
 
     # -- نموذج البحث بمحاذاة يمين --
     st.markdown("""
@@ -332,7 +328,7 @@ def run_main_app():
                 with st.expander(f"📚 **{r['law']}** - المادة رقم: **{r['num']}**", expanded=True):
                     st.markdown(f'''
                     <div style="background-color:#f1f8e9;padding:15px;margin-bottom:5px;border-radius:10px;
-                                border:1px solid #c5e1a5;direction:rtl;text-align:right;">
+                                 border:1px solid #c5e1a5;direction:rtl;text-align:right;">
                         <p style="font-size:17px;line-height:1.8;margin-top:0px;">
                             {r["text"]}
                         </p>
@@ -412,7 +408,6 @@ def main():
     st.markdown(
         """
         <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; margin-top: 18px;">
-            <!-- رمز الميزان SVG -->
             <svg width="70" height="70" viewBox="0 0 64 64" fill="none" style="margin-bottom:10px;">
                 <ellipse cx="32" cy="32" rx="30" ry="30" fill="#388e3c" opacity="0.13"/>
                 <path d="M32 12v32M20 44h24M12 30c0 6 8 10 8 10s8-4 8-10M44 30c0 6-8 10-8 10s-8-4-8-10" stroke="#388E3C" stroke-width="2.5" fill="none"/>
@@ -455,4 +450,7 @@ def main():
             if st.button("🚀 بدء التجربة المجانية (3 دقائق)", key="start_trial_button", use_container_width=True):
                 register_trial(device_id)
                 st.success("✅ بدأت النسخة التجريبية الآن. لديك 3 دقائق لاستخدام التطبيق.")
-                st.warning("يرجى التفاعل مع الصفحة (مثلاً، النقر بالماوس أو التمرير) لتحديث الواجهة وبدء استخدام
+                st.warning("يرجى التفاعل مع الصفحة (مثلاً، النقر بالماوس أو التمرير) لتحديث الواجهة وبدء استخدام النسخة التجريبية.")
+        else:
+            elapsed = time.time() - trial_start
+            
