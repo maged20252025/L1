@@ -363,57 +363,64 @@ def run_main_app():
 # الدالة الرئيسية لتشغيل التطبيق (مع شاشة التفعيل/التجربة)
 # ----------------------------------------------------
 def main():
-    # ---------- الهيدر الجديد المميز ----------
+    # ---------- هيدر احترافي جديد ----------
     components.html("""
     <style>
-    .icon-header-container {
+    .law-header-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 20px;
-        margin-top: 10px;
+        margin-bottom: 24px;
+        margin-top: 18px;
     }
-    .icon-header-circle {
-        background: linear-gradient(135deg, #4CAF50 70%, #A5D6A7);
+    .law-header-logo {
+        background: linear-gradient(135deg, #388E3C 80%, #81C784 100%);
         border-radius: 50%;
-        width: 120px;
-        height: 120px;
+        width: 110px;
+        height: 110px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 6px 20px rgba(76,175,80,0.15);
+        box-shadow: 0 8px 32px rgba(56,142,60,0.18);
         margin-bottom: 8px;
-        border: 4px solid #388E3C;
+        border: 3px solid #2e7d32;
     }
-    .icon-header-circle span {
-        font-size: 54px;
-        color: #fff;
+    .law-header-logo svg {
+        width: 68px; height: 68px;
     }
-    .icon-header-title {
-        color: #388E3C;
-        font-size: 2.1rem;
-        font-weight: bold;
+    .law-header-title {
+        color: #2e7d32;
+        font-size: 2.2rem;
+        font-family: 'Cairo', 'Tajawal', sans-serif;
+        font-weight: 800;
         text-align: center;
-        margin-bottom: 0px;
+        margin-bottom: 0;
         margin-top: 0;
         letter-spacing: 1px;
     }
-    .icon-header-subtitle {
-        color: #66BB6A;
-        font-size: 1.15rem;
+    .law-header-sub {
+        color: #388E3C;
+        font-size: 1.08rem;
+        font-family: 'Cairo', 'Tajawal', sans-serif;
         text-align: center;
-        margin-bottom: 0.5rem;
-        margin-top: -7px;
+        margin-bottom: 0;
+        margin-top: -5px;
     }
     </style>
-    <div class="icon-header-container">
-        <div class="icon-header-circle">
-            <span>📖⚖️</span>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <div class="law-header-container">
+        <div class="law-header-logo">
+            <!-- SVG أيقونة ميزان العدالة -->
+            <svg viewBox="0 0 64 64" fill="none">
+                <ellipse cx="32" cy="32" rx="30" ry="30" fill="#fff" opacity="0.25"/>
+                <path d="M32 12v32M20 44h24M12 30c0 6 8 10 8 10s8-4 8-10M44 30c0 6-8 10-8 10s-8-4-8-10" stroke="#388E3C" stroke-width="2.5" fill="none"/>
+                <circle cx="32" cy="12" r="5" fill="#388E3C" stroke="#fff" stroke-width="1.2"/>
+            </svg>
         </div>
-        <div class="icon-header-title">تطبيق القوانين اليمنية</div>
-        <div class="icon-header-subtitle">استكشف أحدث التعديلات حتى عام 2025م</div>
+        <div class="law-header-title">تطبيق القوانين اليمنية</div>
+        <div class="law-header-sub">أحدث التعديلات حتى 2025</div>
     </div>
-    """, height=220)
+    """, height=230)
     st.divider()
     # ------------------------------------------------
 
